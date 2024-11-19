@@ -35,7 +35,12 @@ export default function RootLayout() {
   // Hide the splash screen once fonts are loaded.
   useEffect(() => {
     if (fontsLoaded) {
-      SplashScreen.hideAsync();
+      // Add a delay before hiding the splash screen
+      const timeout = setTimeout(() => {
+        SplashScreen.hideAsync();
+      }, 2500); // Adjust the delay in milliseconds (e.g., 2000ms = 2 seconds)
+  
+      return () => clearTimeout(timeout); // Clean up the timeout
     }
   }, [fontsLoaded]);
 
@@ -48,7 +53,7 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  const colorScheme = 'dark';
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
