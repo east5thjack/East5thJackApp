@@ -1,46 +1,49 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Dimensions, Alert, Platform } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import * as Location from 'expo-location'; // Install expo-location for geolocation support
+import { StyleSheet, View, Dimensions, Alert } from 'react-native';
+import MapView, { Marker, Region } from 'react-native-maps';
+import * as Location from 'expo-location';
 
 export default function MapScreen() {
-  const [region, setRegion] = useState({
-    latitude: 37.78825, // Default latitude
-    longitude: -122.4324, // Default longitude
-    latitudeDelta: 0.0922, // Zoom level
-    longitudeDelta: 0.0421, // Zoom level
-  });
+  // Separate states for the map's region and the user's location
+  const [region, setRegion] = useState<Region | null>(null);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locationGranted, setLocationGranted] = useState(false);
 
-  const [location, setLocation] = useState(null); // Store the user's location
-
-  // Request location permissions and track user's location
   useEffect(() => {
     (async () => {
+      // Request location permissions
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Allow location access to use this feature.');
+        Alert.alert(
+          'Permission Denied',
+          'Location permission is required to use this feature.'
+        );
         return;
       }
 
-      // Get the user's initial location
-      let loc = await Location.getCurrentPositionAsync({});
-      setLocation(loc.coords);
-      setRegion((prevRegion) => ({
-        ...prevRegion,
-        latitude: loc.coords.latitude,
-        longitude: loc.coords.longitude,
-      }));
+      setLocationGranted(true);
 
-      // Track the user's location updates
+      // Fetch the user's current location
+      let loc = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = loc.coords;
+
+      // Set the user's location (marker) and initialize the map region
+      setUserLocation({ latitude, longitude });
+      setRegion({
+        latitude,
+        longitude,
+        latitudeDelta: 0.0922, // Default zoom level
+        longitudeDelta: 0.0421, // Default zoom level
+      });
+
+      // Watch for location updates and update the marker position
       const locationSubscription = await Location.watchPositionAsync(
         { accuracy: Location.Accuracy.High, distanceInterval: 10 }, // Update every 10 meters
         (locUpdate) => {
-          setLocation(locUpdate.coords);
-          setRegion((prevRegion) => ({
-            ...prevRegion,
+          setUserLocation({
             latitude: locUpdate.coords.latitude,
             longitude: locUpdate.coords.longitude,
-          }));
+          });
         }
       );
 
@@ -50,24 +53,29 @@ export default function MapScreen() {
     })();
   }, []);
 
+  if (!region) {
+    // Show a placeholder view while waiting for the location
+    return (
+      <View style={styles.container}>
+        <MapView style={styles.map} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <MapView
         style={styles.map}
         region={region} // Controlled region for centering
-        onRegionChangeComplete={setRegion}
-        showsUserLocation // Show user marker on map
-        followsUserLocation // Automatically follow user
+        onRegionChangeComplete={setRegion} // Allow user to pan or zoom the map
+        showsUserLocation // Show a blue dot for user's location
+        followsUserLocation={false} // Do not automatically follow user location
       >
-        {/* Custom marker to represent user location */}
-        {location && (
+        {/* Marker for the user's geolocation */}
+        {userLocation && (
           <Marker
-            coordinate={{
-              latitude: location.latitude,
-              longitude: location.longitude,
-            }}
-            title="You"
-            description="Your current location"
+            coordinate={userLocation}
+            title="Your Location"
           />
         )}
       </MapView>
