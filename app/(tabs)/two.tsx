@@ -1,14 +1,24 @@
-import { StyleSheet } from 'react-native';
-
-import EditScreenInfo from '@/components/EditScreenInfo';
+import { StyleSheet, Image, Button } from 'react-native';
 import { Text, View } from '@/components/Themed';
 
-export default function TabTwoScreen() {
+export default function ProfileScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab Two</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/two.tsx" />
+      {/* Profile Picture */}
+      <Image
+        source={{ uri: 'https://via.placeholder.com/150' }} // Replace with dynamic user image
+        style={styles.profileImage}
+      />
+
+      {/* User Information */}
+      <Text style={styles.name}>John Doe</Text>
+      <Text style={styles.email}>johndoe@example.com</Text>
+
+      {/* Action Buttons */}
+      <View style={styles.actions}>
+        <Button title="Edit Profile" onPress={() => alert('Edit Profile')} />
+        <Button title="Log Out" onPress={() => alert('Log Out')} color="#FF4500" />
+      </View>
     </View>
   );
 }
@@ -16,16 +26,29 @@ export default function TabTwoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#121212', // Dark background
   },
-  title: {
-    fontSize: 20,
+  profileImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    marginBottom: 20,
+  },
+  name: {
+    fontSize: 24,
     fontWeight: 'bold',
+    color: '#fff', // White text for dark background
+    marginBottom: 8,
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
+  email: {
+    fontSize: 16,
+    color: '#ccc',
+    marginBottom: 20,
+  },
+  actions: {
     width: '80%',
+    marginTop: 20,
   },
 });
